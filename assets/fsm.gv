@@ -1,0 +1,112 @@
+// visualizing a learned sorting algorithm though RL
+digraph finite_state_machine {
+	dpi=200 rankdir=LR size="7.75,10.25"
+	"l[i]<=l[j]"
+	node [fillcolor=lightblue2 shape=circle style=filled]
+	"l[i]>l[j]"
+	node [shape=circle]
+	node [fillcolor=white shape=circle]
+	2 [label="2
+i=0, j=0
+i=j"]
+	node [fillcolor=lightblue2 shape=circle]
+	65 [label="65
+i=?, j=0
+i>j"]
+	node [fillcolor=white shape=circle]
+	134 [label="134
+i=?, j=?
+i=j"]
+	node [fillcolor=lightblue2 shape=circle]
+	227 [label="227
+i=?, j=0
+i>j"]
+	node [fillcolor=lightblue2 shape=circle]
+	65 [label="65
+i=?, j=0
+i>j"]
+	node [fillcolor=lightblue2 shape=circle]
+	137 [label="137
+i=?, j=?
+i>j"]
+	node [fillcolor=lightblue2 shape=circle]
+	227 [label="227
+i=?, j=0
+i>j"]
+	node [fillcolor=white shape=circle]
+	70 [label="70
+i=len, j=0
+i>j"]
+	node [fillcolor=white shape=doublecircle]
+	16 [label="16
+i=len, j=0
+i>j"]
+	node [fillcolor=white shape=circle]
+	232 [label="232
+i=len, j=0
+i>j"]
+	node [fillcolor=lightblue2 shape=circle]
+	65 [label="65
+i=?, j=0
+i>j"]
+	node [fillcolor=white shape=circle]
+	136 [label="136
+i=?, j=?
+i>j"]
+	node [fillcolor=lightblue2 shape=circle]
+	299 [label="299
+i=?, j=?
+i>j"]
+	node [fillcolor=white shape=circle]
+	2 [label="2
+i=0, j=0
+i=j"]
+	node [fillcolor=white shape=circle]
+	64 [label="64
+i=?, j=0
+i>j"]
+	node [fillcolor=lightblue2 shape=circle]
+	281 [label="281
+i=?, j=0
+i>j"]
+	node [fillcolor=lightblue2 shape=circle]
+	227 [label="227
+i=?, j=0
+i>j"]
+	node [fillcolor=lightblue2 shape=circle]
+	281 [label="281
+i=?, j=0
+i>j"]
+	node [fillcolor=lightblue2 shape=circle]
+	137 [label="137
+i=?, j=?
+i>j"]
+	node [fillcolor=lightblue2 shape=circle]
+	137 [label="137
+i=?, j=?
+i>j"]
+	node [fillcolor=lightblue2 shape=circle]
+	299 [label="299
+i=?, j=?
+i>j"]
+	2 -> 65 [label=INCI]
+	65 -> 134 [label=INCJ]
+	134 -> 227 [label=RESETJ]
+	227 -> 65 [label=INCI]
+	65 -> 137 [label=INCJ]
+	137 -> 134 [label=INCJ]
+	227 -> 70 [label=INCI]
+	70 -> 232 [label=RESETJ]
+	232 -> 16 [label=TERMINATE]
+	65 -> 136 [label=INCJ]
+	136 -> 299 [label=SWAP]
+	299 -> 134 [label=INCJ]
+	2 -> 64 [label=INCI]
+	64 -> 281 [label=SWAP]
+	281 -> 134 [label=INCJ]
+	227 -> 64 [label=INCI]
+	281 -> 136 [label=INCJ]
+	137 -> 137 [label=INCJ]
+	137 -> 136 [label=INCJ]
+	299 -> 136 [label=INCJ]
+}

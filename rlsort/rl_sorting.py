@@ -184,13 +184,17 @@ def print_qtable(Q):
         print('(%3d)\t%7.2f %7.2f %7.2f %7.2f %7.2f %7.2f' % (idx, *arr))
 
 
-def reconstruct_algorithm(WSK=None, filename='transitions.csv'):
+def reconstruct_algorithm(WSK=None,
+                          filename='transitions.csv',
+                          graph_path='fsm.gv',
+                          verbose=False):
     """Recontruct efficient algorithm out of reduced transitions.
 
     # Arguments
         WSK: pd.DataFrame. Wertschöpfungskette AKA transitions.
                            If None loaded from disk, ow saved to disk.
         filename: str. The to-be-saved or to-be-loaded location on disk.
+        verbose: boolean. Whether to be verbose in the final returned algorithm.
 
     # Returns
         Callable function with the to-be-sorted list as a parameter.
@@ -198,7 +202,7 @@ def reconstruct_algorithm(WSK=None, filename='transitions.csv'):
     if WSK is None:
         WSK = pd.read_csv(filename)
     else:
-        WSK.to_csv(filename)
+        WSK.to_csv(filename, index=False)
 
     unique_transitions = WSK.drop(['state', 'next state'], axis=1) \
                             .drop_duplicates() \
@@ -216,19 +220,75 @@ def reconstruct_algorithm(WSK=None, filename='transitions.csv'):
          'next state': lambda x: tuple(x)}
     ))
 
-    def _algorithm(lst, transitions, lst_len, i=0, j=0, l_ac=Action.TERMINATE):
+    def _graph(transitions, graph_path):
+        """Transitions vizualized and saved with pydot in a final-state-machine.
+
+        # Arguments
+            transitions: pd.DataFrame. All reachable unique state transitions.
+            graph_path: str. Filename where to save the outputed graphviz.
+                             If None, nothing will be rendered nor graphviz imported.
+        """
+        if graph_path is None:  # early exit
+            return
+
+        from graphviz import Digraph
+        dot = Digraph(name='finite_state_machine',
+                      comment='visualizing a learned sorting algorithm though RL',
+                      filename=graph_path,
+                      format='png')
+        dot.attr(rankdir='LR', size='7.75,10.25', dpi='200')
+
+        # legend
+        dot.node('l[i]<=l[j]')
+        dot.attr('node', shape='circle', fillcolor='lightblue2', style='filled')
+        dot.node('l[i]>l[j]')
+
+        # build all nodes
+        dot.attr('node', shape='circle')
+        for _, st in transitions.iterrows():
+            fillcolor = 'white' if st['li_lj'] == 0 else 'lightblue2'
+            if st['to-be-executed action'] == Action.TERMINATE.name:
+                label = '{}\n{}, {}\n{}'.format(
+                    st['next state'],
+                    'i=0' if st['i'] == -1 else 'i=len' if st['i'] == 1 else 'i=?',
+                    'j=0' if st['j'] == -1 else 'j=len' if st['j'] == 1 else 'j=?',
+                    'i<j' if st['i_j'] == -1 else 'i>j' if st['i_j'] == 1 else 'i=j'
+                )
+                dot.attr('node', shape='doublecircle', fillcolor=fillcolor)
+                dot.node(str(st['next state']), label)
+
+            label = '{}\n{}, {}\n{}'.format(
+                st['state'],
+                'i=0' if st['i'] == -1 else 'i=len' if st['i'] == 1 else 'i=?',
+                'j=0' if st['j'] == -1 else 'j=len' if st['j'] == 1 else 'j=?',
+                'i<j' if st['i_j'] == -1 else 'i>j' if st['i_j'] == 1 else 'i=j'
+            )
+            dot.attr('node', shape='circle', fillcolor=fillcolor)
+            dot.node(str(st['state']), label)
+
+        # build all edges
+        for _, st in transitions.iterrows():
+            dot.edge(str(st['state']),
+                     str(st['next state']),
+                     st['to-be-executed action'])
+
+        dot.render()
+
+    def _algorithm(lst, transitions, lst_len, verbose=False):
         """The final reconstructed sorting algorithm.
         Arguments:
             lst: np.array. To be sorted list.
             transitions: pd.Series. Unique transitions used as a lookup table.
             lst_len: int. Length of `list`. Used for algorithm speedup.
-            i: int. Inbound variable for algorithm functionality.
-            j: int. Another inbound variable for algorithm functionality.
-            l_ac: Action. The last performed action for algorithm functionality/execution.
+            verbose: boolean. Whether to be verbose or not.
         Returns:
             The sorted list and the number of steps needed for sorting.
         """
         steps = 0
+        i = 0  # Inbound variable for algorithm functionality.
+        j = 0  # Another inbound variable for algorithm functionality.
+        # The last performed action for algorithm functionality/execution.
+        l_ac = Action.TERMINATE
         while True:
             state = (
                 0 if i >= lst_len or j >= lst_len or lst[i] <= lst[j] else 1,
@@ -237,8 +297,11 @@ def reconstruct_algorithm(WSK=None, filename='transitions.csv'):
                 -1 if j == 0 else 1 if j == lst_len else 0,
                 l_ac.name
             )
-
             l_ac = Action[transitions.loc[state]]
+
+            if verbose:
+                print('{}, i={}, j={}: {}.'.format(lst, i, j, l_ac.name))
+
             steps += 1
             if l_ac is Action.INCI:
                 i += 1
@@ -255,12 +318,14 @@ def reconstruct_algorithm(WSK=None, filename='transitions.csv'):
 
         return lst, steps
 
-    return lambda l: _algorithm(np.array(l), unique_transitions, len(l))
+    _graph(WSK, graph_path)
+    return lambda l: _algorithm(np.array(l), unique_transitions, len(l), verbose)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description='Sorting through Reinforcement Learning.'
+        description='Sorting through Reinforcement Learning.',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument('list', metavar='N', type=int, nargs='*',
                         help='to-be-sorted list elements',
@@ -270,6 +335,10 @@ if __name__ == '__main__':
     parser.add_argument('--filename', '-f', metavar='FILE',
                         default='transitions.csv',
                         help='location of the learned algorithm')
+    parser.add_argument('--graph', '-g', metavar='FILE', default=None,
+                        help='where to save the transition graph')
+    parser.add_argument('--verbose', '-v', action='store_true',
+                        help='be verbose in list sorting')
     args = parser.parse_args()
 
     WSK = None  # If not specified -> read from disk
@@ -279,7 +348,7 @@ if __name__ == '__main__':
         WSK = test(Q, LIST_LEN + 1)
         print_qtable(Q)
 
-    algorithm = reconstruct_algorithm(WSK, filename=args.filename)
+    algorithm = reconstruct_algorithm(WSK, args.filename, args.graph, args.verbose)
 
     # Example call:
     print('Sorted list in {1:} steps: {0:}'.format(*algorithm(args.list)))

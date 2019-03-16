@@ -10,6 +10,6 @@ This module sets up the base environment in accordance to OpenAI's `gym` includi
 @date Mar 2019
 """
 
-from action import Action
-from env import RLSort
-from histogram import HistWrapper
+from .action import Action
+from .env import RLSort
+from .histogram import HistWrapper
