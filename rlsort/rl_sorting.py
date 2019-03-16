@@ -32,14 +32,14 @@ from env import Action, RLSort, HistWrapper
 
 def train(list_len,
           Q=None,
-          epochs=2_000_000,
-          n_iter=4000,
+          epochs=5_000_000,
+          n_iter=2000,
           greedy_steps=50_000,
           stop_hist_exploration=0.9,
           q_decay=0.95,
-          lr=.2,
+          lr=.1,
           y=.7,
-          render=5000):
+          render=10_000):
     """
     Trains on the RL-environment with tabular Q-learning.
 
@@ -109,7 +109,7 @@ def train(list_len,
     return Q
 
 
-def test(Q, list_len, n_iter=400):
+def test(Q, list_len, n_iter=2000):
     """Tests the trained Q-table with every possible permutation (<list_len)
     iteratively by printing its resulting state / reward.
 
@@ -276,7 +276,7 @@ if __name__ == '__main__':
     if args.train:
         LIST_LEN = 6
         Q = train(LIST_LEN)
-        WSK = test(Q, LIST_LEN)
+        WSK = test(Q, LIST_LEN + 1)
         print_qtable(Q)
 
     algorithm = reconstruct_algorithm(WSK, filename=args.filename)
