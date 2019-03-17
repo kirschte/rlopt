@@ -204,7 +204,7 @@ def reconstruct_algorithm(WSK=None,
     else:
         WSK.to_csv(filename, index=False)
 
-    unique_transitions = WSK.drop(['state', 'next state'], axis=1) \
+    unique_transitions = WSK.drop(['next state'], axis=1) \
                             .drop_duplicates() \
                             .reset_index(drop=True)
     unique_transitions = unique_transitions.set_index(['li_lj',
@@ -212,7 +212,6 @@ def reconstruct_algorithm(WSK=None,
                                                        'i',
                                                        'j',
                                                        'last action'])
-    unique_transitions = unique_transitions['to-be-executed action']
     print('{} unique transitions:'.format(len(unique_transitions)))
     print(WSK.groupby(['li_lj', 'i_j', 'i', 'j', 'last action']).agg(
         {'to-be-executed action': 'max',
@@ -278,7 +277,7 @@ def reconstruct_algorithm(WSK=None,
         """The final reconstructed sorting algorithm.
         Arguments:
             lst: np.array. To be sorted list.
-            transitions: pd.Series. Unique transitions used as a lookup table.
+            transitions: pd.DataFrame. Unique transitions used as a lookup table.
             lst_len: int. Length of `list`. Used for algorithm speedup.
             verbose: boolean. Whether to be verbose or not.
         Returns:
@@ -297,10 +296,11 @@ def reconstruct_algorithm(WSK=None,
                 -1 if j == 0 else 1 if j == lst_len else 0,
                 l_ac.name
             )
-            l_ac = Action[transitions.loc[state]]
+            l_ac = Action[transitions.loc[state, 'to-be-executed action']]
 
             if verbose:
-                print('{}, i={}, j={}: {}.'.format(lst, i, j, l_ac.name))
+                s_n = transitions.loc[state, 'state']
+                print('{:3} <<- {}, i={}, j={}: {}.'.format(s_n, lst, i, j, l_ac.name))
 
             steps += 1
             if l_ac is Action.INCI:
