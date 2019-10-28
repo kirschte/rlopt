@@ -5,9 +5,9 @@ Instead of manually designing an optimal algorithm for each individual problem w
 It does not only gives its best by means of correctness but also by time-efficiency!
 
 Although problem-specific customization of the environment is needed, it is yet easy to obtain one.
-For illustration purpose, you'll find in this framework an exemplary environment suitable for maximizing a reward based on rearranging any given 1D list.
+For illustration purposes, you'll find in this framework an exemplary environment suitable for maximizing a reward based on rearranging any given 1D list.
 
-Note, that not only the action space is independent of the state space, moreover the state space in its behalf is also independent of the concrete list.
+Note, that not only the action space is independent of the state space, moreover the state space on its behalf is also independent of the concrete list.
 This ensures scalability towards larger optimization problems and raises the opportunity of a generalized solution.
 
 ## Objective
@@ -79,7 +79,7 @@ On the simplified version however it's faster and (surprisingly) constant:
 
 ![RLSort vs. BubbleSort](assets/rl_bubble.png)
 
-Note, that due to the restricted actions (imcrement by one, reset to zero) just algorithms of a n²-magnitude
+Note, that due to the restricted actions (increment by one, reset to zero) just algorithms of an n²-magnitude
 could be learned.
 
 #### Example call (of the original version)
